@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Search, RefreshCw, Eye } from 'lucide-react';
+import { Trophy, Search, RefreshCw, Eye, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { TicketWithRelations, Technician } from '../lib/database.types';
 import { TicketDetailView } from './TicketDetailView';
@@ -46,6 +46,7 @@ export function WonTicketsList() {
           technicians (*)
         `)
         .eq('won', true)
+        .or('won_hidden.is.null,won_hidden.eq.false')
         .order('won_at', { ascending: false });
 
       if (error) throw error;
@@ -228,13 +229,26 @@ export function WonTicketsList() {
                         </p>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => setSelectedTicket(ticket)}
-                          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Detayları Görüntüle"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={async () => {
+                              await supabase.from('tickets').update({ won_hidden: true }).eq('id', ticket.id);
+                              fetchWonTickets();
+                            }}
+                            className="flex items-center gap-1.5 px-2 py-1.5 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors text-sm"
+                            title="Temizle"
+                          >
+                            <X className="w-4 h-4" />
+                            <span>Temizle</span>
+                          </button>
+                          <button
+                            onClick={() => setSelectedTicket(ticket)}
+                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Detayları Görüntüle"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

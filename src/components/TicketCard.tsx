@@ -1,4 +1,4 @@
-import { AlertCircle, Clock, Wrench } from 'lucide-react';
+import { AlertCircle, Clock, Wrench, X } from 'lucide-react';
 import type { TicketWithRelations } from '../lib/database.types';
 
 interface TicketCardProps {
@@ -6,6 +6,7 @@ interface TicketCardProps {
   onDragStart: (e: React.DragEvent, ticketId: string) => void;
   onDragEnd?: () => void;
   onEdit: (ticket: TicketWithRelations) => void;
+  onClearFromWon?: (ticketId: string) => void;
 }
 
 const priorityColors = {
@@ -29,7 +30,7 @@ const priorityLabels: Record<string, string> = {
   urgent: 'Acil',
 };
 
-export function TicketCard({ ticket, onDragStart, onDragEnd, onEdit }: TicketCardProps) {
+export function TicketCard({ ticket, onDragStart, onDragEnd, onEdit, onClearFromWon }: TicketCardProps) {
   const PriorityIcon = priorityIcons[ticket.priority as keyof typeof priorityIcons] || Clock;
 
   return (
@@ -38,9 +39,24 @@ export function TicketCard({ ticket, onDragStart, onDragEnd, onEdit }: TicketCar
       onDragStart={(e) => onDragStart(e, ticket.id)}
       onDragEnd={() => onDragEnd?.()}
       onClick={() => onEdit(ticket)}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-move hover:shadow-md transition-shadow"
+      className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-move hover:shadow-md transition-shadow relative"
     >
-      <div className="flex items-start justify-between gap-2 mb-2">
+      {onClearFromWon && (
+        <button
+          type="button"
+          draggable={false}
+          onDragStart={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClearFromWon(ticket.id);
+          }}
+          className="absolute top-2 right-2 z-10 p-1.5 bg-gray-100 hover:bg-amber-100 text-gray-500 hover:text-amber-600 rounded-md shadow-sm cursor-pointer"
+          title="Temizle"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
+      <div className={`flex items-start justify-between gap-2 mb-2 ${onClearFromWon ? 'pr-8' : ''}`}>
         <h3 className="font-semibold text-gray-900 text-sm leading-tight flex-1">
           {ticket.title}
         </h3>

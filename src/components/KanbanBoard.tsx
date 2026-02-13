@@ -93,6 +93,17 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
     e.dataTransfer.effectAllowed = 'move';
   };
 
+  const handleClearFromWon = async (ticketId: string) => {
+    const { error } = await supabase
+      .from('tickets')
+      .update({ won_hidden: true })
+      .eq('id', ticketId);
+    if (!error) {
+      fetchTickets();
+      onTicketUpdate?.();
+    }
+  };
+
   const handleDrop = async (ticketId: string, newStatus: string) => {
     const ticket = tickets.find((t) => t.id === ticketId);
     if (!ticket) return;
@@ -426,8 +437,8 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
         {columns.map((column) => {
           let filteredTickets;
           if (column.status === 'won') {
-            // Won column shows all tickets with won=true
-            filteredTickets = tickets.filter((t) => t.won === true);
+            // Won column shows tickets with won=true and not hidden
+            filteredTickets = tickets.filter((t) => t.won === true && !t.won_hidden);
           } else if (column.status === 'delivery') {
             // Delivery column excludes won tickets
             filteredTickets = tickets.filter((t) => t.status === column.status && !t.won);
@@ -445,6 +456,7 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
               onDrop={handleDrop}
               onDragStart={handleDragStart}
               onEdit={onEditTicket}
+              onClearFromWon={column.status === 'won' ? handleClearFromWon : undefined}
               color={column.color}
             />
           );

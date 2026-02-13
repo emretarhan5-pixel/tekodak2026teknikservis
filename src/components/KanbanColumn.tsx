@@ -9,6 +9,7 @@ interface KanbanColumnProps {
   onDrop: (ticketId: string, newStatus: string) => void;
   onDragStart: (e: React.DragEvent, ticketId: string) => void;
   onEdit: (ticket: TicketWithRelations) => void;
+  onClearFromWon?: (ticketId: string) => void;
   color: string;
 }
 
@@ -19,6 +20,7 @@ export function KanbanColumn({
   onDrop,
   onDragStart,
   onEdit,
+  onClearFromWon,
   color,
 }: KanbanColumnProps) {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -66,6 +68,7 @@ export function KanbanColumn({
               ticket={ticket}
               onDragStart={onDragStart}
               onEdit={onEdit}
+              onClearFromWon={onClearFromWon}
             />
           ))}
           {tickets.length === 0 && (

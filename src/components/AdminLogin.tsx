@@ -19,8 +19,14 @@ export function AdminLogin({ onBack, onLogin }: AdminLoginProps) {
     setLoading(true);
 
     try {
+      const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!baseUrl) {
+        setError('Supabase yapılandırması eksik. .env dosyasını kontrol edin.');
+        return;
+      }
+
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth/login`,
+        `${baseUrl}/functions/v1/auth/login`,
         {
           method: 'POST',
           headers: {
@@ -31,15 +37,20 @@ export function AdminLogin({ onBack, onLogin }: AdminLoginProps) {
         }
       );
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+        throw new Error(data.error || 'Giriş başarısız');
       }
 
       onLogin(data.user);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const msg = err instanceof Error ? err.message : 'Bir hata oluştu';
+      if (msg === 'Failed to fetch' || msg.includes('fetch') || err instanceof TypeError) {
+        setError('Sunucuya bağlanılamıyor. Terminalde: npx supabase login → npx supabase link --project-ref cidvdsiajhgdwqypltsl → npx supabase functions deploy auth');
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }

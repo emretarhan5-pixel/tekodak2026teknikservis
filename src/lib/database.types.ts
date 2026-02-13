@@ -132,6 +132,7 @@ export interface Database {
           approved_service_cost: number | null
           won: boolean | null
           won_at: string | null
+          won_hidden: boolean | null
         }
         Insert: {
           id?: string
@@ -165,6 +166,7 @@ export interface Database {
           approved_service_cost?: number | null
           won?: boolean | null
           won_at?: string | null
+          won_hidden?: boolean | null
         }
         Update: {
           id?: string
@@ -198,6 +200,7 @@ export interface Database {
           approved_service_cost?: number | null
           won?: boolean | null
           won_at?: string | null
+          won_hidden?: boolean | null
         }
       }
       ticket_notes: {
