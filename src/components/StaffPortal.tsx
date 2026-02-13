@@ -31,11 +31,6 @@ export function StaffPortal({ user, onLogout }: StaffPortalProps) {
     setShowDetailView(true);
   };
 
-  const handleEditFromDetail = () => {
-    setShowDetailView(false);
-    setShowTicketModal(true);
-  };
-
   const handleCloseDetailView = () => {
     setShowDetailView(false);
     setSelectedTicket(null);
@@ -129,7 +124,6 @@ export function StaffPortal({ user, onLogout }: StaffPortalProps) {
         <TicketDetailView
           ticket={selectedTicket}
           onClose={handleCloseDetailView}
-          onEdit={handleEditFromDetail}
           onRefresh={handleSaveTicket}
         />
       )}

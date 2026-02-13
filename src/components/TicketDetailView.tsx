@@ -18,7 +18,7 @@ import type { TicketWithRelations, TicketNote, Technician } from '../lib/databas
 interface TicketDetailViewProps {
   ticket: TicketWithRelations;
   onClose: () => void;
-  onEdit: () => void;
+  onEdit?: () => void;
   onRefresh: () => void;
 }
 
@@ -190,13 +190,15 @@ export function TicketDetailView({ ticket, onClose, onEdit, onRefresh }: TicketD
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={onEdit}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            >
-              <Edit3 className="w-4 h-4" />
-              Düzenle
-            </button>
+            {onEdit && (
+              <button
+                onClick={onEdit}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <Edit3 className="w-4 h-4" />
+                Düzenle
+              </button>
+            )}
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-200 rounded-lg"

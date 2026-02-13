@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import type { TicketWithRelations } from '../lib/database.types';
 import { KanbanColumn } from './KanbanColumn';
-import { X, Receipt, ClipboardCheck } from 'lucide-react';
+import { X, Receipt, ClipboardCheck, AlertTriangle } from 'lucide-react';
 import { DeliveryCelebration } from './DeliveryCelebration';
 import { MoneyAnimation } from './MoneyAnimation';
 
@@ -367,6 +367,14 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
     )
       return;
 
+    const ticket = tickets.find((t) => t.id === pendingInvoice.ticketId);
+    const approvedTotal = (ticket?.approved_labor_cost ?? 0) + (ticket?.approved_service_cost ?? 0);
+    const invoiceAmount = parseFloat(pendingInvoice.totalServiceAmount);
+    const amountsMismatch = approvedTotal > 0 && Math.abs(approvedTotal - invoiceAmount) > 0.01;
+
+    if (amountsMismatch && !window.confirm('Tutarlar uyuşmuyor. Müşteri onayı ile fatura tutarı farklı. Yine de kaydetmek istiyor musunuz?'))
+      return;
+
     setSubmitting(true);
     await executeInvoiceMove();
     setSubmitting(false);
@@ -559,6 +567,23 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
                   />
                 </div>
               </div>
+              {(() => {
+                const ticket = tickets.find((t) => t.id === pendingInvoice.ticketId);
+                const approvedTotal = (ticket?.approved_labor_cost ?? 0) + (ticket?.approved_service_cost ?? 0);
+                const invoiceAmount = parseFloat(pendingInvoice.totalServiceAmount);
+                const amountsMismatch = approvedTotal > 0 && !isNaN(invoiceAmount) && Math.abs(approvedTotal - invoiceAmount) > 0.01;
+                return amountsMismatch ? (
+                  <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+                    <AlertTriangle className="w-5 h-5 shrink-0" />
+                    <div>
+                      <p className="font-medium">Tutar uyuşmazlığı</p>
+                      <p className="text-amber-700 text-xs mt-0.5">
+                        Müşteri onayı: {approvedTotal.toLocaleString('tr-TR')} ₺ • Fatura tutarı: {invoiceAmount.toLocaleString('tr-TR')} ₺
+                      </p>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
             </div>
             <div className="flex justify-end gap-3 p-4 border-t border-gray-200">
               <button
