@@ -39,7 +39,7 @@ export function TicketCard({ ticket, onDragStart, onDragEnd, onEdit, onClearFrom
       onDragStart={(e) => onDragStart(e, ticket.id)}
       onDragEnd={() => onDragEnd?.()}
       onClick={() => onEdit(ticket)}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-move hover:shadow-md transition-shadow relative"
+      className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 cursor-move hover:shadow-md active:scale-[0.98] transition-all relative touch-manipulation select-none"
     >
       {onClearFromWon && (
         <button
@@ -50,14 +50,14 @@ export function TicketCard({ ticket, onDragStart, onDragEnd, onEdit, onClearFrom
             e.stopPropagation();
             onClearFromWon(ticket.id);
           }}
-          className="absolute top-2 right-2 z-10 p-1.5 bg-gray-100 hover:bg-amber-100 text-gray-500 hover:text-amber-600 rounded-md shadow-sm cursor-pointer"
+          className="absolute top-2 right-2 z-10 p-2 min-h-[44px] min-w-[44px] flex items-center justify-center bg-gray-100 hover:bg-amber-100 text-gray-500 hover:text-amber-600 rounded-md shadow-sm cursor-pointer touch-manipulation"
           title="Temizle"
         >
           <X className="w-4 h-4" />
         </button>
       )}
-      <div className={`flex items-start justify-between gap-2 mb-2 ${onClearFromWon ? 'pr-8' : ''}`}>
-        <h3 className="font-semibold text-gray-900 text-sm leading-tight flex-1">
+      <div className={`flex items-start justify-between gap-2 mb-2 ${onClearFromWon ? 'pr-12 sm:pr-8' : ''}`}>
+        <h3 className="font-semibold text-gray-900 text-sm leading-tight flex-1 line-clamp-2">
           {ticket.title}
         </h3>
         <span

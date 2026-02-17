@@ -158,13 +158,13 @@ export function AdminAnalytics() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Calendar className="w-5 h-5 text-gray-500" />
+          <Calendar className="w-5 h-5 text-gray-500 shrink-0" />
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value as DateRange)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium"
+            className="flex-1 sm:flex-none px-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium text-base min-h-[44px] touch-manipulation"
           >
             <option value="7d">Son 7 Gün</option>
             <option value="30d">Son 30 Gün</option>
@@ -175,14 +175,14 @@ export function AdminAnalytics() {
         </div>
         <button
           onClick={fetchData}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors min-h-[44px] touch-manipulation"
         >
           <RefreshCw className="w-4 h-4" />
           Yenile
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-emerald-100 rounded-xl">

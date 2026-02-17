@@ -112,20 +112,20 @@ export function WonTicketsList() {
 
       {/* Search and Filters */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Müşteri adı, bilet başlığı, seri numarası veya personel adı ile ara..."
+              placeholder="Müşteri, bilet, seri no veya personel ara..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+              className="w-full pl-10 pr-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-base"
             />
           </div>
           <button
             onClick={fetchWonTickets}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+            className="px-4 py-2.5 sm:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 min-h-[44px] touch-manipulation"
             title="Yenile"
           >
             <RefreshCw className="w-4 h-4" />
@@ -134,8 +134,72 @@ export function WonTicketsList() {
         </div>
       </div>
 
-      {/* Tickets Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      {/* Mobil kart görünümü */}
+      <div className="md:hidden space-y-3">
+        {filteredTickets.map((ticket) => {
+          const technician = ticket.technicians;
+          return (
+            <div
+              key={ticket.id}
+              className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm active:scale-[0.99] transition-transform touch-manipulation"
+            >
+              <div className="flex items-start gap-3 mb-2">
+                <div className="p-2 bg-yellow-100 rounded-lg shrink-0">
+                  <Trophy className="w-4 h-4 text-yellow-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-gray-900 line-clamp-2">{ticket.title}</p>
+                  {ticket.serial_number && (
+                    <p className="text-xs text-gray-500 mt-0.5">SN: {ticket.serial_number}</p>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-gray-900 mb-2">{ticket.customer_full_name || '-'}</p>
+              {technician && (
+                <div className="flex items-center gap-2 mb-3">
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white"
+                    style={{ backgroundColor: technician.avatar_color || '#3B82F6' }}
+                  >
+                    {technician.name.charAt(0)}
+                  </div>
+                  <span className="text-sm text-gray-700">{technician.name}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                <span className="font-semibold text-green-600">
+                  {formatCurrency(ticket.total_service_amount)}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {ticket.won_at ? formatDate(ticket.won_at) : '-'}
+                </span>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => setSelectedTicket(ticket)}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 bg-blue-50 text-blue-700 rounded-lg font-medium text-sm min-h-[44px] touch-manipulation"
+                >
+                  <Eye className="w-4 h-4" />
+                  Görüntüle
+                </button>
+                <button
+                  onClick={async () => {
+                    await supabase.from('tickets').update({ won_hidden: true }).eq('id', ticket.id);
+                    fetchWonTickets();
+                  }}
+                  className="flex items-center justify-center gap-2 py-2.5 px-3 bg-amber-50 text-amber-700 rounded-lg font-medium text-sm min-h-[44px] touch-manipulation"
+                >
+                  <X className="w-4 h-4" />
+                  Temizle
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Tickets Table - masaüstü */}
+      <div className="hidden md:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">

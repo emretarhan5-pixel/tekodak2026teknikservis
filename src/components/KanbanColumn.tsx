@@ -44,7 +44,7 @@ export function KanbanColumn({
   };
 
   return (
-    <div className="flex-1 min-w-[280px] max-w-[320px]">
+    <div className="flex-1 min-w-[240px] max-w-[260px] sm:min-w-[280px] sm:max-w-[320px] shrink-0 snap-center">
       <div
         className={`rounded-lg border-2 ${
           isDragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-gray-50'
@@ -53,8 +53,8 @@ export function KanbanColumn({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div className={`p-4 border-b-2 ${color}`}>
-          <h2 className="font-bold text-gray-900 text-sm uppercase tracking-wide flex items-center justify-between">
+        <div className={`p-3 sm:p-4 border-b-2 ${color}`}>
+          <h2 className="font-bold text-gray-900 text-xs sm:text-sm uppercase tracking-wide flex items-center justify-between">
             {title}
             <span className="bg-white text-gray-700 rounded-full px-2 py-0.5 text-xs font-semibold">
               {tickets.length}

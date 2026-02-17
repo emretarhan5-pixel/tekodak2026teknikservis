@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobil: safe-area (çentik, home indicator) */
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+}
+
+/* Dokunmatik butonlar için 300ms gecikmeyi azaltır */
+@layer utilities {
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

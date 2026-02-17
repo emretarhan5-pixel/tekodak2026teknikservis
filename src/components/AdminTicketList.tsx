@@ -122,7 +122,7 @@ export function AdminTicketList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -130,26 +130,28 @@ export function AdminTicketList() {
             placeholder="Biletler, müşteriler, seri numaraları ara..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-3 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
           />
         </div>
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg font-medium transition-colors ${
-            showFilters ? 'bg-blue-50 border-blue-300 text-blue-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-          }`}
-        >
-          <Filter className="w-5 h-5" />
-          Filtreler
-          <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-        </button>
-        <button
-          onClick={fetchTickets}
-          className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          <RefreshCw className="w-5 h-5" />
-          Yenile
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg font-medium transition-colors min-h-[44px] touch-manipulation ${
+              showFilters ? 'bg-blue-50 border-blue-300 text-blue-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <Filter className="w-5 h-5" />
+            Filtreler
+            <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+          </button>
+          <button
+            onClick={fetchTickets}
+            className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors min-h-[44px] touch-manipulation"
+          >
+            <RefreshCw className="w-5 h-5" />
+            Yenile
+          </button>
+        </div>
       </div>
 
       {showFilters && (
@@ -192,7 +194,71 @@ export function AdminTicketList() {
         {filteredTickets.length} / {tickets.length} bilet gösteriliyor
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      {/* Mobil kart görünümü */}
+      <div className="md:hidden space-y-3">
+        {filteredTickets.map((ticket) => {
+          const status = statusConfig[ticket.status] || statusConfig.accepted_pending;
+          const priority = priorityConfig[ticket.priority as TicketPriority] || priorityConfig.medium;
+          const technician = technicians.find((t) => t.id === ticket.assigned_to);
+          return (
+            <div
+              key={ticket.id}
+              className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm active:scale-[0.99] transition-transform touch-manipulation"
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <p className="font-medium text-gray-900 line-clamp-2 flex-1">{ticket.title}</p>
+                <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${priority.color}`}>
+                  {priority.label}
+                </span>
+              </div>
+              {ticket.serial_number && (
+                <p className="text-xs text-gray-500 mb-1">Seri No: {ticket.serial_number}</p>
+              )}
+              <p className="text-sm text-gray-900 mb-2">{ticket.customer_full_name || '-'}</p>
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${status.color}`}>
+                  {status.label}
+                </span>
+                {technician && (
+                  <span className="text-xs text-gray-600 flex items-center gap-1">
+                    <span
+                      className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold text-white"
+                      style={{ backgroundColor: technician.avatar_color }}
+                    >
+                      {technician.name.charAt(0)}
+                    </span>
+                    {technician.name}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                <span className="text-sm font-medium text-gray-900">
+                  {formatCurrency(ticket.total_service_amount)}
+                </span>
+                <span className="text-xs text-gray-500">{formatDate(ticket.created_at)}</span>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => setSelectedTicket(ticket)}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 bg-blue-50 text-blue-700 rounded-lg font-medium text-sm min-h-[44px] touch-manipulation"
+                >
+                  <Eye className="w-4 h-4" />
+                  Görüntüle
+                </button>
+                <button
+                  onClick={() => setEditingTicket(ticket)}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 bg-emerald-50 text-emerald-700 rounded-lg font-medium text-sm min-h-[44px] touch-manipulation"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Düzenle
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>

@@ -216,15 +216,15 @@ export function TicketModal({ ticket, onClose, onSave, staffName, staffId }: Tic
           delay={1000}
         />
       )}
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-2xl max-w-4xl w-full h-[95dvh] sm:h-auto sm:max-h-[95vh] overflow-hidden flex flex-col touch-manipulation">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
           <h2 className="text-xl font-bold text-gray-900">
             {ticket ? 'Servis Biletini Düzenle' : 'Yeni Servis Bileti Oluştur'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-200 rounded-lg"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-2.5 hover:bg-gray-200 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
           >
             <X className="w-5 h-5" />
           </button>

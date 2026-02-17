@@ -441,7 +441,7 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
           duration={3000}
         />
       )}
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 overscroll-x-contain snap-x snap-mandatory scroll-smooth">
         {columns.map((column) => {
           let filteredTickets;
           if (column.status === 'won') {
@@ -472,15 +472,15 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
       </div>
 
       {pendingMove && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between gap-2 p-4 border-b border-gray-200">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 break-words pr-2">
                 {pendingMove.prompt}
               </h3>
               <button
                 onClick={handleNoteCancel}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
@@ -498,14 +498,14 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
             <div className="flex justify-end gap-3 p-4 border-t border-gray-200">
               <button
                 onClick={handleNoteCancel}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors min-h-[44px]"
               >
                 İptal
               </button>
               <button
                 onClick={handleNoteSubmit}
                 disabled={!noteContent.trim() || submitting}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
               >
                 {submitting ? 'Kaydediliyor...' : 'Kaydet ve Taşı'}
               </button>
@@ -515,8 +515,8 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
       )}
 
       {pendingInvoice && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <div className="flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-teal-600" />
@@ -524,7 +524,7 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
               </div>
               <button
                 onClick={handleInvoiceCancel}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
@@ -588,14 +588,14 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
             <div className="flex justify-end gap-3 p-4 border-t border-gray-200">
               <button
                 onClick={handleInvoiceCancel}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors min-h-[44px]"
               >
                 İptal
               </button>
               <button
                 onClick={handleInvoiceSubmit}
                 disabled={!isInvoiceFormValid || submitting}
-                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
               >
                 {submitting ? 'Kaydediliyor...' : 'Faturalamaya Taşı'}
               </button>
@@ -605,8 +605,8 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
       )}
 
       {pendingApproval && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <div className="flex items-center gap-2">
                 <ClipboardCheck className="w-5 h-5 text-amber-600" />
@@ -614,7 +614,7 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
               </div>
               <button
                 onClick={handleApprovalCancel}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
@@ -661,14 +661,14 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
             <div className="flex justify-end gap-3 p-4 border-t border-gray-200">
               <button
                 onClick={handleApprovalCancel}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors min-h-[44px]"
               >
                 İptal
               </button>
               <button
                 onClick={handleApprovalSubmit}
                 disabled={!isApprovalFormValid || submitting}
-                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
               >
                 {submitting ? 'Kaydediliyor...' : 'Müşteri Onayına Taşı'}
               </button>

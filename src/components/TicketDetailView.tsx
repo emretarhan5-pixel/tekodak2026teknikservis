@@ -176,24 +176,24 @@ export function TicketDetailView({ ticket, onClose, onEdit, onRefresh }: TicketD
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-bold text-gray-900">Bilet Detayları</h2>
-            <span className={`text-xs px-3 py-1 rounded-full font-medium ${status.color}`}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-2xl max-w-4xl w-full h-[95dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col touch-manipulation">
+        <div className="flex items-center justify-between gap-2 px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50 flex-wrap sm:flex-nowrap">
+          <div className="flex items-center gap-2 sm:gap-4 flex-wrap min-w-0">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Bilet Detayları</h2>
+            <span className={`text-xs px-3 py-1 rounded-full font-medium shrink-0 ${status.color}`}>
               {status.label}
             </span>
-            <span className={`text-xs px-3 py-1 rounded-full font-medium ${priority.color}`}>
+            <span className={`text-xs px-3 py-1 rounded-full font-medium shrink-0 ${priority.color}`}>
               <AlertCircle className="w-3 h-3 inline mr-1" />
               {priority.label}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {onEdit && (
               <button
                 onClick={onEdit}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors min-h-[44px]"
               >
                 <Edit3 className="w-4 h-4" />
                 Düzenle
@@ -201,30 +201,30 @@ export function TicketDetailView({ ticket, onClose, onEdit, onRefresh }: TicketD
             )}
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-200 rounded-lg"
+              className="text-gray-400 hover:text-gray-600 transition-colors p-2.5 hover:bg-gray-200 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+          <div className="p-4 sm:p-6 space-y-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{ticket.title}</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 break-words">{ticket.title}</h3>
               {ticket.description && (
                 <p className="text-gray-600 text-sm whitespace-pre-wrap">{ticket.description}</p>
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div className="flex items-center gap-2 text-gray-500">
-                <Clock className="w-4 h-4" />
-                <span>Oluşturuldu: {formatDateTime(ticket.created_at)}</span>
+                <Clock className="w-4 h-4 shrink-0" />
+                <span className="break-words">Oluşturuldu: {formatDateTime(ticket.created_at)}</span>
               </div>
               <div className="flex items-center gap-2 text-gray-500">
-                <Clock className="w-4 h-4" />
-                <span>Güncellendi: {formatDateTime(ticket.updated_at)}</span>
+                <Clock className="w-4 h-4 shrink-0" />
+                <span className="break-words">Güncellendi: {formatDateTime(ticket.updated_at)}</span>
               </div>
             </div>
 
