@@ -7,6 +7,7 @@ interface TicketCardProps {
   onDragEnd?: () => void;
   onEdit: (ticket: TicketWithRelations) => void;
   onClearFromWon?: (ticketId: string) => void;
+  currentStaffId?: string;
 }
 
 const priorityColors = {
@@ -30,8 +31,9 @@ const priorityLabels: Record<string, string> = {
   urgent: 'Acil',
 };
 
-export function TicketCard({ ticket, onDragStart, onDragEnd, onEdit, onClearFromWon }: TicketCardProps) {
+export function TicketCard({ ticket, onDragStart, onDragEnd, onEdit, onClearFromWon, currentStaffId }: TicketCardProps) {
   const PriorityIcon = priorityIcons[ticket.priority as keyof typeof priorityIcons] || Clock;
+  const isOwnTicket = currentStaffId && ticket.assigned_to === currentStaffId;
 
   return (
     <div
@@ -39,7 +41,11 @@ export function TicketCard({ ticket, onDragStart, onDragEnd, onEdit, onClearFrom
       onDragStart={(e) => onDragStart(e, ticket.id)}
       onDragEnd={() => onDragEnd?.()}
       onClick={() => onEdit(ticket)}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 cursor-move hover:shadow-md active:scale-[0.98] transition-all relative touch-manipulation select-none"
+      className={`rounded-lg shadow-sm border p-3 sm:p-4 cursor-move hover:shadow-md active:scale-[0.98] transition-all relative touch-manipulation select-none ${
+        isOwnTicket
+          ? 'bg-white border-blue-200 border-2'
+          : 'bg-gray-50 border-gray-200 opacity-80'
+      }`}
     >
       {onClearFromWon && (
         <button

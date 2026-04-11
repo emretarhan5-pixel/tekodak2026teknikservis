@@ -80,6 +80,7 @@ export interface Database {
           serial_number: string
           customer_name: string
           model: string
+          custom_code: string | null
           created_at: string
         }
         Insert: {
@@ -88,6 +89,7 @@ export interface Database {
           serial_number: string
           customer_name: string
           model?: string
+          custom_code?: string | null
           created_at?: string
         }
         Update: {
@@ -96,6 +98,7 @@ export interface Database {
           serial_number?: string
           customer_name?: string
           model?: string
+          custom_code?: string | null
           created_at?: string
         }
       }

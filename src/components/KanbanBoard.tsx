@@ -466,6 +466,7 @@ export function KanbanBoard({ onEditTicket, refreshTrigger, onTicketUpdate, staf
               onEdit={onEditTicket}
               onClearFromWon={column.status === 'won' ? handleClearFromWon : undefined}
               color={column.color}
+              currentStaffId={staffId}
             />
           );
         })}

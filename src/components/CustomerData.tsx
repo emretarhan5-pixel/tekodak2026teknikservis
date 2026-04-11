@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Download, Search, Users, Phone, Mail, MapPin, Building2, FileText } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Download, Search, Users, User, Phone, Mail, MapPin, Building2, FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface CustomerRecord {
   id: string;
+  ticket_ids: string[];
   customer_full_name: string | null;
   customer_phone: string | null;
   customer_extension: string | null;
@@ -17,15 +18,59 @@ interface CustomerRecord {
   last_ticket_date: string;
 }
 
-export function CustomerData() {
+function isEmptyField(v: string | null | undefined): boolean {
+  return v == null || String(v).trim() === '';
+}
+
+type EditFormState = {
+  customer_full_name: string;
+  customer_phone: string;
+  customer_extension: string;
+  customer_email: string;
+  customer_address: string;
+  billing_company_name: string;
+  billing_address: string;
+  billing_tax_office: string;
+  billing_tax_number: string;
+};
+
+function recordToForm(c: CustomerRecord): EditFormState {
+  return {
+    customer_full_name: c.customer_full_name ?? '',
+    customer_phone: c.customer_phone ?? '',
+    customer_extension: c.customer_extension ?? '',
+    customer_email: c.customer_email ?? '',
+    customer_address: c.customer_address ?? '',
+    billing_company_name: c.billing_company_name ?? '',
+    billing_address: c.billing_address ?? '',
+    billing_tax_office: c.billing_tax_office ?? '',
+    billing_tax_number: c.billing_tax_number ?? '',
+  };
+}
+
+interface CustomerDataProps {
+  isAdmin?: boolean;
+}
+
+export function CustomerData({ isAdmin = true }: CustomerDataProps) {
   const [customers, setCustomers] = useState<CustomerRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerRecord | null>(null);
+  const [editForm, setEditForm] = useState<EditFormState | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchCustomerData();
   }, []);
+
+  useEffect(() => {
+    if (selectedCustomer) {
+      setEditForm(recordToForm(selectedCustomer));
+    } else {
+      setEditForm(null);
+    }
+  }, [selectedCustomer]);
 
   const fetchCustomerData = async () => {
     try {
@@ -58,6 +103,7 @@ export function CustomerData() {
 
         const existing = customerMap.get(key);
         if (existing) {
+          existing.ticket_ids.push(ticket.id);
           existing.ticket_count += 1;
           if (new Date(ticket.created_at) > new Date(existing.last_ticket_date)) {
             existing.last_ticket_date = ticket.created_at;
@@ -70,6 +116,7 @@ export function CustomerData() {
         } else {
           customerMap.set(key, {
             id: ticket.id,
+            ticket_ids: [ticket.id],
             customer_full_name: ticket.customer_full_name,
             customer_phone: ticket.customer_phone,
             customer_extension: ticket.customer_extension,
@@ -107,6 +154,93 @@ export function CustomerData() {
       customer.customer_address?.toLowerCase().includes(term)
     );
   });
+
+  const staffCanSave = useMemo(() => {
+    if (!selectedCustomer || !editForm || isAdmin) return false;
+    const orig = selectedCustomer;
+    const keys: (keyof EditFormState)[] = [
+      'customer_full_name',
+      'customer_phone',
+      'customer_extension',
+      'customer_email',
+      'customer_address',
+      'billing_company_name',
+      'billing_address',
+      'billing_tax_office',
+      'billing_tax_number',
+    ];
+    return keys.some((k) => {
+      const wasEmpty = isEmptyField(orig[k as keyof CustomerRecord] as string | null);
+      const now = editForm[k].trim();
+      return wasEmpty && now.length > 0;
+    });
+  }, [selectedCustomer, editForm, isAdmin]);
+
+  const adminFormDirty = useMemo(() => {
+    if (!selectedCustomer || !editForm || !isAdmin) return false;
+    const initial = recordToForm(selectedCustomer);
+    return (Object.keys(initial) as (keyof EditFormState)[]).some((k) => initial[k] !== editForm[k]);
+  }, [selectedCustomer, editForm, isAdmin]);
+
+  const saveEnabled = isAdmin ? adminFormDirty : staffCanSave;
+
+  const handleSave = async () => {
+    if (!selectedCustomer || !editForm || selectedCustomer.ticket_ids.length === 0) return;
+    if (!saveEnabled) return;
+
+    setSaving(true);
+    try {
+      let payload: Record<string, string | null> = {};
+
+      if (isAdmin) {
+        payload = {
+          customer_full_name: editForm.customer_full_name.trim() || null,
+          customer_phone: editForm.customer_phone.trim() || null,
+          customer_extension: editForm.customer_extension.trim() || null,
+          customer_email: editForm.customer_email.trim() || null,
+          customer_address: editForm.customer_address.trim() || null,
+          billing_company_name: editForm.billing_company_name.trim() || null,
+          billing_address: editForm.billing_address.trim() || null,
+          billing_tax_office: editForm.billing_tax_office.trim() || null,
+          billing_tax_number: editForm.billing_tax_number.trim() || null,
+        };
+      } else {
+        const orig = selectedCustomer;
+        const map: [keyof EditFormState, keyof CustomerRecord][] = [
+          ['customer_full_name', 'customer_full_name'],
+          ['customer_phone', 'customer_phone'],
+          ['customer_extension', 'customer_extension'],
+          ['customer_email', 'customer_email'],
+          ['customer_address', 'customer_address'],
+          ['billing_company_name', 'billing_company_name'],
+          ['billing_address', 'billing_address'],
+          ['billing_tax_office', 'billing_tax_office'],
+          ['billing_tax_number', 'billing_tax_number'],
+        ];
+        for (const [formKey, recKey] of map) {
+          if (isEmptyField(orig[recKey] as string | null) && editForm[formKey].trim()) {
+            payload[formKey] = editForm[formKey].trim();
+          }
+        }
+        if (Object.keys(payload).length === 0) {
+          setSaving(false);
+          return;
+        }
+      }
+
+      const { error } = await supabase.from('tickets').update(payload).in('id', selectedCustomer.ticket_ids);
+
+      if (error) throw error;
+
+      setSelectedCustomer(null);
+      await fetchCustomerData();
+    } catch (error) {
+      console.error('Error saving customer:', error);
+      alert('Kayıt sırasında bir hata oluştu.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const exportToCSV = () => {
     const headers = [
@@ -285,12 +419,13 @@ export function CustomerData() {
         )}
       </div>
 
-      {selectedCustomer && (
+      {selectedCustomer && editForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Müşteri Detayları</h3>
               <button
+                type="button"
                 onClick={() => setSelectedCustomer(null)}
                 className="text-gray-400 hover:text-gray-600 transition-colors text-2xl leading-none"
               >
@@ -307,75 +442,127 @@ export function CustomerData() {
                   <h4 className="font-semibold text-gray-900 text-lg">
                     {selectedCustomer.customer_full_name || 'Bilinmiyor'}
                   </h4>
-                  <p className="text-sm text-gray-500">
-                    {selectedCustomer.ticket_count} servis bileti
-                  </p>
+                  <p className="text-sm text-gray-500">{selectedCustomer.ticket_count} servis bileti</p>
                 </div>
               </div>
 
               <div className="grid gap-4">
-                <DetailSection
+                <FormField
+                  icon={User}
+                  label="Tam Ad"
+                  formKey="customer_full_name"
+                  original={selectedCustomer.customer_full_name}
+                  form={editForm}
+                  setForm={setEditForm}
+                  isAdmin={isAdmin}
+                />
+                <FormField
                   icon={Phone}
                   label="Telefon"
-                  value={
-                    selectedCustomer.customer_phone
-                      ? `${selectedCustomer.customer_phone}${selectedCustomer.customer_extension ? ` dah. ${selectedCustomer.customer_extension}` : ''}`
-                      : null
-                  }
+                  formKey="customer_phone"
+                  original={selectedCustomer.customer_phone}
+                  form={editForm}
+                  setForm={setEditForm}
+                  isAdmin={isAdmin}
+                  inputMode="tel"
                 />
-                <DetailSection icon={Mail} label="E-posta" value={selectedCustomer.customer_email} />
-                <DetailSection icon={MapPin} label="Adres" value={selectedCustomer.customer_address} />
+                <FormField
+                  icon={Phone}
+                  label="Dahili"
+                  formKey="customer_extension"
+                  original={selectedCustomer.customer_extension}
+                  form={editForm}
+                  setForm={setEditForm}
+                  isAdmin={isAdmin}
+                />
+                <FormField
+                  icon={Mail}
+                  label="E-posta"
+                  formKey="customer_email"
+                  original={selectedCustomer.customer_email}
+                  form={editForm}
+                  setForm={setEditForm}
+                  isAdmin={isAdmin}
+                  inputMode="email"
+                />
+                <FormField
+                  icon={MapPin}
+                  label="Adres"
+                  formKey="customer_address"
+                  original={selectedCustomer.customer_address}
+                  form={editForm}
+                  setForm={setEditForm}
+                  isAdmin={isAdmin}
+                  multiline
+                />
               </div>
 
-              {(selectedCustomer.billing_company_name ||
-                selectedCustomer.billing_address ||
-                selectedCustomer.billing_tax_office ||
-                selectedCustomer.billing_tax_number) && (
-                <div className="pt-4 border-t border-gray-200">
-                  <h5 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-gray-400" />
-                    Fatura Bilgileri
-                  </h5>
-                  <div className="grid gap-3 text-sm">
-                    {selectedCustomer.billing_company_name && (
-                      <div>
-                        <span className="text-gray-500">Şirket:</span>{' '}
-                        <span className="text-gray-900">{selectedCustomer.billing_company_name}</span>
-                      </div>
-                    )}
-                    {selectedCustomer.billing_address && (
-                      <div>
-                        <span className="text-gray-500">Adres:</span>{' '}
-                        <span className="text-gray-900">{selectedCustomer.billing_address}</span>
-                      </div>
-                    )}
-                    {selectedCustomer.billing_tax_office && (
-                      <div>
-                        <span className="text-gray-500">Vergi Dairesi:</span>{' '}
-                        <span className="text-gray-900">{selectedCustomer.billing_tax_office}</span>
-                      </div>
-                    )}
-                    {selectedCustomer.billing_tax_number && (
-                      <div>
-                        <span className="text-gray-500">Vergi Numarası:</span>{' '}
-                        <span className="text-gray-900 font-mono">{selectedCustomer.billing_tax_number}</span>
-                      </div>
-                    )}
-                  </div>
+              <div className="pt-4 border-t border-gray-200">
+                <h5 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-gray-400" />
+                  Fatura Bilgileri
+                </h5>
+                <div className="grid gap-4">
+                  <FormField
+                    icon={Building2}
+                    label="Şirket Adı"
+                    formKey="billing_company_name"
+                    original={selectedCustomer.billing_company_name}
+                    form={editForm}
+                    setForm={setEditForm}
+                    isAdmin={isAdmin}
+                  />
+                  <FormField
+                    icon={MapPin}
+                    label="Fatura Adresi"
+                    formKey="billing_address"
+                    original={selectedCustomer.billing_address}
+                    form={editForm}
+                    setForm={setEditForm}
+                    isAdmin={isAdmin}
+                    multiline
+                  />
+                  <FormField
+                    icon={FileText}
+                    label="Vergi Dairesi"
+                    formKey="billing_tax_office"
+                    original={selectedCustomer.billing_tax_office}
+                    form={editForm}
+                    setForm={setEditForm}
+                    isAdmin={isAdmin}
+                  />
+                  <FormField
+                    icon={FileText}
+                    label="Vergi Numarası"
+                    formKey="billing_tax_number"
+                    original={selectedCustomer.billing_tax_number}
+                    form={editForm}
+                    setForm={setEditForm}
+                    isAdmin={isAdmin}
+                  />
                 </div>
-              )}
+              </div>
 
               <div className="pt-4 border-t border-gray-200 text-sm text-gray-500">
                 Son servis: {new Date(selectedCustomer.last_ticket_date).toLocaleDateString('tr-TR')}
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl flex flex-col sm:flex-row gap-2">
               <button
+                type="button"
                 onClick={() => setSelectedCustomer(null)}
-                className="w-full px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                className="flex-1 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
               >
                 Kapat
+              </button>
+              <button
+                type="button"
+                disabled={!saveEnabled || saving}
+                onClick={handleSave}
+                className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? 'Kaydediliyor...' : 'Kaydet'}
               </button>
             </div>
           </div>
@@ -385,24 +572,67 @@ export function CustomerData() {
   );
 }
 
-function DetailSection({
+function FormField({
   icon: Icon,
   label,
-  value,
+  formKey,
+  original,
+  form,
+  setForm,
+  isAdmin,
+  multiline,
+  inputMode,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
-  value: string | null;
+  formKey: keyof EditFormState;
+  original: string | null;
+  form: EditFormState;
+  setForm: React.Dispatch<React.SetStateAction<EditFormState | null>>;
+  isAdmin: boolean;
+  multiline?: boolean;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
 }) {
-  if (!value) return null;
+  const filled = !isEmptyField(original);
+  const showInput = isAdmin || !filled;
+  const displayValue = original?.trim() ? original : '—';
+
+  const commonInput =
+    'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-900';
+
   return (
     <div className="flex items-start gap-3">
-      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 mt-1">
         <Icon className="w-4 h-4 text-gray-500" />
       </div>
-      <div>
-        <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-        <p className="text-gray-900">{value}</p>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{label}</p>
+        {showInput ? (
+          multiline ? (
+            <textarea
+              value={form[formKey]}
+              onChange={(e) =>
+                setForm((prev) => (prev ? { ...prev, [formKey]: e.target.value } : null))
+              }
+              className={commonInput}
+              rows={3}
+            />
+          ) : (
+            <input
+              type={inputMode === 'email' ? 'email' : 'text'}
+              inputMode={inputMode}
+              value={form[formKey]}
+              onChange={(e) =>
+                setForm((prev) => (prev ? { ...prev, [formKey]: e.target.value } : null))
+              }
+              className={commonInput}
+            />
+          )
+        ) : (
+          <p className="text-sm text-gray-900 py-2 px-1 border border-transparent bg-gray-50 rounded-lg">
+            {displayValue}
+          </p>
+        )}
       </div>
     </div>
   );

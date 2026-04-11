@@ -109,11 +109,8 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
       <aside className={`fixed lg:relative inset-y-0 left-0 z-40 w-72 sm:w-64 bg-gray-800 border-r border-gray-700 flex flex-col transform transition-transform duration-200 ease-out lg:translate-x-0 pt-[env(safe-area-inset-top)] ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-4 sm:p-6 border-b border-gray-700 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-amber-500 p-2 rounded-lg">
-              <Shield className="w-5 h-5 text-gray-900" />
-            </div>
             <div>
-              <h1 className="text-lg font-bold text-white">TechService</h1>
+              <h1 className="text-lg font-bold text-white">TekodakService</h1>
               <p className="text-xs text-amber-400 font-semibold uppercase tracking-wide">Yönetici Paneli</p>
             </div>
           </div>

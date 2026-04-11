@@ -11,6 +11,7 @@ interface KanbanColumnProps {
   onEdit: (ticket: TicketWithRelations) => void;
   onClearFromWon?: (ticketId: string) => void;
   color: string;
+  currentStaffId?: string;
 }
 
 export function KanbanColumn({
@@ -22,6 +23,7 @@ export function KanbanColumn({
   onEdit,
   onClearFromWon,
   color,
+  currentStaffId,
 }: KanbanColumnProps) {
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -69,6 +71,7 @@ export function KanbanColumn({
               onDragStart={onDragStart}
               onEdit={onEdit}
               onClearFromWon={onClearFromWon}
+              currentStaffId={currentStaffId}
             />
           ))}
           {tickets.length === 0 && (

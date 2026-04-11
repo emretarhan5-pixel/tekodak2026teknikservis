@@ -234,25 +234,26 @@ export function TicketModal({ ticket, onClose, onSave, staffName, staffId }: Tic
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <label className={labelClasses}>Başlık *</label>
+                <label className={labelClasses}>Şirket Adı *</label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => handleChange('title', e.target.value)}
                   className={inputClasses}
-                  placeholder="Sorunun kısa açıklaması"
+                  placeholder="Şirket adını girin"
                   required
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className={labelClasses}>Açıklama</label>
+                <label className={labelClasses}>Açıklama *</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
                   className={inputClasses}
                   placeholder="Sorunun detaylı açıklaması..."
                   rows={3}
+                  required
                 />
               </div>
 
@@ -314,21 +315,23 @@ export function TicketModal({ ticket, onClose, onSave, staffName, staffId }: Tic
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className={labelClasses}>Seri Numarası</label>
+                  <label className={labelClasses}>Seri Numarası *</label>
                   <input
                     type="text"
                     value={formData.serial_number}
                     onChange={(e) => handleChange('serial_number', e.target.value)}
                     className={inputClasses}
                     placeholder="Seri numarasını girin"
+                    required
                   />
                 </div>
                 <div>
-                  <label className={labelClasses}>Ürün Tipi</label>
+                  <label className={labelClasses}>Ürün Tipi *</label>
                   <select
                     value={formData.product_type}
                     onChange={(e) => handleChange('product_type', e.target.value)}
                     className={inputClasses}
+                    required
                   >
                     <option value="">Ürün tipi seçin</option>
                     <option value="Evrak İmha Makinesi">Evrak İmha Makinesi</option>
@@ -338,7 +341,7 @@ export function TicketModal({ ticket, onClose, onSave, staffName, staffId }: Tic
                   </select>
                 </div>
                 <div>
-                  <label className={labelClasses}>Marka</label>
+                  <label className={labelClasses}>Marka *</label>
                   <select
                     value={brandSelection}
                     onChange={(e) => {
@@ -351,6 +354,7 @@ export function TicketModal({ ticket, onClose, onSave, staffName, staffId }: Tic
                       }
                     }}
                     className={inputClasses}
+                    required
                   >
                     <option value="">Marka seçin</option>
                     <option value="KOBRA">KOBRA</option>
@@ -364,35 +368,28 @@ export function TicketModal({ ticket, onClose, onSave, staffName, staffId }: Tic
                       onChange={(e) => handleChange('brand', e.target.value)}
                       className={`${inputClasses} mt-2`}
                       placeholder="Özel marka girin"
+                      required
                     />
                   )}
                 </div>
                 <div>
-                  <label className={labelClasses}>Model</label>
+                  <label className={labelClasses}>Model *</label>
                   <input
                     type="text"
                     value={formData.model}
                     onChange={(e) => handleChange('model', e.target.value)}
                     className={inputClasses}
-                    placeholder="Örn: MacBook Pro"
+                    placeholder="Örn: KOBRA Hybrid"
+                    required
                   />
                 </div>
                 <div>
-                  <label className={labelClasses}>Model Numarası</label>
-                  <input
-                    type="text"
-                    value={formData.model_number}
-                    onChange={(e) => handleChange('model_number', e.target.value)}
-                    className={inputClasses}
-                    placeholder="Örn: A2338"
-                  />
-                </div>
-                <div>
-                  <label className={labelClasses}>Garanti Durumu</label>
+                  <label className={labelClasses}>Garanti Durumu *</label>
                   <select
                     value={formData.warranty_status}
                     onChange={(e) => handleChange('warranty_status', e.target.value)}
                     className={inputClasses}
+                    required
                   >
                     <option value="unknown">Bilinmiyor</option>
                     <option value="in_warranty">Garanti Kapsamında</option>
@@ -409,53 +406,58 @@ export function TicketModal({ ticket, onClose, onSave, staffName, staffId }: Tic
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
-                  <label className={labelClasses}>Müşteri Tam Adı</label>
+                  <label className={labelClasses}>Müşteri Tam Adı *</label>
                   <input
                     type="text"
                     value={formData.customer_full_name}
                     onChange={(e) => handleChange('customer_full_name', e.target.value)}
                     className={inputClasses}
                     placeholder="Tam ad"
+                    required
                   />
                 </div>
                 <div>
-                  <label className={labelClasses}>Telefon Numarası</label>
+                  <label className={labelClasses}>Telefon Numarası *</label>
                   <input
                     type="tel"
                     value={formData.customer_phone}
                     onChange={(e) => handleChange('customer_phone', e.target.value)}
                     className={inputClasses}
                     placeholder="+90 555 123 4567"
+                    required
                   />
                 </div>
                 <div>
-                  <label className={labelClasses}>Dahili Numara</label>
+                  <label className={labelClasses}>Dahili Numara *</label>
                   <input
                     type="text"
                     value={formData.customer_extension}
                     onChange={(e) => handleChange('customer_extension', e.target.value)}
                     className={inputClasses}
                     placeholder="Dahili"
+                    required
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className={labelClasses}>E-posta Adresi</label>
+                  <label className={labelClasses}>E-posta Adresi *</label>
                   <input
                     type="email"
                     value={formData.customer_email}
                     onChange={(e) => handleChange('customer_email', e.target.value)}
                     className={inputClasses}
                     placeholder="email@ornek.com"
+                    required
                   />
                 </div>
                 <div className="md:col-span-3">
-                  <label className={labelClasses}>Adres</label>
+                  <label className={labelClasses}>Adres *</label>
                   <textarea
                     value={formData.customer_address}
                     onChange={(e) => handleChange('customer_address', e.target.value)}
                     className={inputClasses}
                     placeholder="Tam adres"
                     rows={2}
+                    required
                   />
                 </div>
               </div>
@@ -468,43 +470,47 @@ export function TicketModal({ ticket, onClose, onSave, staffName, staffId }: Tic
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClasses}>Şirket Adı</label>
+                  <label className={labelClasses}>Şirket Adı *</label>
                   <input
                     type="text"
                     value={formData.billing_company_name}
                     onChange={(e) => handleChange('billing_company_name', e.target.value)}
                     className={inputClasses}
                     placeholder="Şirket adı"
+                    required
                   />
                 </div>
                 <div>
-                  <label className={labelClasses}>Fatura Adresi</label>
+                  <label className={labelClasses}>Fatura Adresi *</label>
                   <input
                     type="text"
                     value={formData.billing_address}
                     onChange={(e) => handleChange('billing_address', e.target.value)}
                     className={inputClasses}
                     placeholder="Fatura adresi"
+                    required
                   />
                 </div>
                 <div>
-                  <label className={labelClasses}>Vergi Dairesi</label>
+                  <label className={labelClasses}>Vergi Dairesi *</label>
                   <input
                     type="text"
                     value={formData.billing_tax_office}
                     onChange={(e) => handleChange('billing_tax_office', e.target.value)}
                     className={inputClasses}
                     placeholder="Vergi dairesi adı"
+                    required
                   />
                 </div>
                 <div>
-                  <label className={labelClasses}>Vergi Numarası</label>
+                  <label className={labelClasses}>Vergi Numarası *</label>
                   <input
                     type="text"
                     value={formData.billing_tax_number}
                     onChange={(e) => handleChange('billing_tax_number', e.target.value)}
                     className={inputClasses}
                     placeholder="Vergi kimlik numarası"
+                    required
                   />
                 </div>
               </div>

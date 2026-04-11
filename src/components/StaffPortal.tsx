@@ -56,11 +56,8 @@ export function StaffPortal({ user, onLogout }: StaffPortalProps) {
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <Ticket className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
               <div>
-                <h1 className="text-lg sm:text-xl font-bold text-gray-900">TechService</h1>
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900">TekodakService</h1>
                 <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide hidden sm:block">Personel Portalı</p>
               </div>
             </div>
