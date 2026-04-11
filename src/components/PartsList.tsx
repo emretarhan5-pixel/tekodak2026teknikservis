@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { Plus, Trash2, Wrench, FileSpreadsheet, X } from 'lucide-react';
+import { Plus, Trash2, Package, FileSpreadsheet, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '../lib/supabase';
-import type { Device } from '../lib/database.types';
+import type { Part } from '../lib/database.types';
 
-/** Excel: 1. satır başlık — yalnızca Makine Adı | Seri Numarası (seri boşsa otomatik) */
 type PreviewRow = {
-  device_type: string;
-  serial_from_excel: string;
+  name: string;
+  part_code: string;
+  notes: string;
   isValid: boolean;
 };
 
@@ -23,15 +23,13 @@ function isDuplicateError(err: { code?: string; message?: string } | null): bool
   );
 }
 
-function makeSerial(seed: number) {
-  return `DEV-${Date.now()}-${seed}-${Math.random().toString(36).substr(2, 9)}`;
-}
-
-/** Makine envanteri: makine adları; Excel ile toplu içe aktarım. */
-export function DeviceList() {
-  const [devices, setDevices] = useState<Device[]>([]);
+/** Excel ilk satır başlık: Parça Adı | Stok Kodu | Notlar */
+export function PartsList() {
+  const [parts, setParts] = useState<Part[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [machineName, setMachineName] = useState('');
+  const [name, setName] = useState('');
+  const [partCode, setPartCode] = useState('');
+  const [notes, setNotes] = useState('');
 
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [previewRows, setPreviewRows] = useState<PreviewRow[]>([]);
@@ -40,7 +38,7 @@ export function DeviceList() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetchDevices();
+    fetchParts();
   }, []);
 
   useEffect(() => {
@@ -49,56 +47,46 @@ export function DeviceList() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  const fetchDevices = async () => {
+  const fetchParts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('devices')
-        .select('*')
-        .order('device_type');
-
+      const { data, error } = await supabase.from('parts').select('*').order('name');
       if (error) throw error;
-      setDevices(data || []);
+      setParts(data || []);
     } catch (error) {
-      console.error('Error fetching devices:', error);
+      console.error('Error fetching parts:', error);
     }
   };
 
-  const handleAddDevice = async (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!machineName.trim()) return;
-
+    if (!name.trim()) return;
     try {
-      const serialNumber = makeSerial(0);
-
-      const { error } = await supabase.from('devices').insert([
+      const { error } = await supabase.from('parts').insert([
         {
-          device_type: machineName.trim(),
-          serial_number: serialNumber,
-          customer_name: '',
-          model: '',
+          name: name.trim(),
+          part_code: partCode.trim(),
+          notes: notes.trim(),
         },
       ]);
-
       if (error) throw error;
-
-      setMachineName('');
+      setName('');
+      setPartCode('');
+      setNotes('');
       setShowForm(false);
-      fetchDevices();
+      fetchParts();
     } catch (error) {
-      console.error('Error adding device:', error);
+      console.error('Error adding part:', error);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Bu makineyi silmek istediğinizden emin misiniz?')) return;
-
+    if (!confirm('Bu parçayı silmek istediğinizden emin misiniz?')) return;
     try {
-      const { error } = await supabase.from('devices').delete().eq('id', id);
-
+      const { error } = await supabase.from('parts').delete().eq('id', id);
       if (error) throw error;
-      fetchDevices();
+      fetchParts();
     } catch (error) {
-      console.error('Error deleting device:', error);
+      console.error('Error deleting part:', error);
     }
   };
 
@@ -114,12 +102,14 @@ export function DeviceList() {
 
     const dataRows = matrix.slice(1);
     const rows: PreviewRow[] = dataRows.map((row) => {
-      const c0 = row[0] != null ? String(row[0]).trim() : '';
-      const c1 = row[1] != null ? String(row[1]).trim() : '';
+      const n = row[0] != null ? String(row[0]).trim() : '';
+      const code = row[1] != null ? String(row[1]).trim() : '';
+      const note = row[2] != null ? String(row[2]).trim() : '';
       return {
-        device_type: c0,
-        serial_from_excel: c1,
-        isValid: c0.length > 0,
+        name: n,
+        part_code: code,
+        notes: note,
+        isValid: n.length > 0,
       };
     });
 
@@ -146,57 +136,48 @@ export function DeviceList() {
   const handleConfirmImport = async () => {
     const validRows = previewRows.filter((r) => r.isValid);
     if (validRows.length === 0) {
-      setToast('Kaydedilecek geçerli satır yok (Makine Adı zorunlu).');
+      setToast('Kaydedilecek geçerli satır yok (Parça Adı zorunlu).');
       return;
     }
 
-    const payloads = validRows.map((r, idx) => ({
-      device_type: r.device_type,
-      serial_number: r.serial_from_excel.length > 0 ? r.serial_from_excel : makeSerial(idx),
-      customer_name: '',
-      model: '',
+    const payloads = validRows.map((r) => ({
+      name: r.name,
+      part_code: r.part_code || '',
+      notes: r.notes || '',
     }));
 
     setImportLoading(true);
     try {
-      const { error } = await supabase.from('devices').insert(payloads);
+      const { error } = await supabase.from('parts').insert(payloads);
 
       if (!error) {
-        setToast(`${validRows.length} makine başarıyla eklendi`);
+        setToast(`${validRows.length} parça başarıyla eklendi`);
         setImportModalOpen(false);
         setPreviewRows([]);
         resetFileInput();
-        await fetchDevices();
+        await fetchParts();
         return;
       }
 
       if (isDuplicateError(error)) {
         let success = 0;
-        const failedSerials: string[] = [];
-
+        const failed: string[] = [];
         for (const p of payloads) {
-          const { error: rowErr } = await supabase.from('devices').insert([p]);
+          const { error: rowErr } = await supabase.from('parts').insert([p]);
           if (rowErr) {
-            if (isDuplicateError(rowErr)) {
-              failedSerials.push(p.serial_number);
-            } else {
-              failedSerials.push(`${p.serial_number} (${rowErr.message})`);
-            }
+            failed.push(p.name);
           } else {
             success += 1;
           }
         }
-
-        const parts: string[] = [];
-        if (success > 0) parts.push(`${success} makine eklendi`);
-        if (failedSerials.length > 0) {
-          parts.push(`Tekrarlayan veya hatalı seri: ${failedSerials.join(', ')}`);
-        }
-        setToast(parts.join(' — '));
+        const partsMsg: string[] = [];
+        if (success > 0) partsMsg.push(`${success} parça eklendi`);
+        if (failed.length > 0) partsMsg.push(`Atlanan / hatalı: ${failed.slice(0, 10).join(', ')}${failed.length > 10 ? '…' : ''}`);
+        setToast(partsMsg.join(' — '));
         setImportModalOpen(false);
         setPreviewRows([]);
         resetFileInput();
-        await fetchDevices();
+        await fetchParts();
         return;
       }
 
@@ -214,8 +195,6 @@ export function DeviceList() {
     setPreviewRows([]);
     resetFileInput();
   };
-
-  const openFilePicker = () => fileInputRef.current?.click();
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 relative">
@@ -235,9 +214,9 @@ export function DeviceList() {
 
       {importModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="flex max-h-[90vh] w-full max-w-lg flex-col rounded-xl bg-white shadow-xl">
+          <div className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-xl bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-              <h3 className="text-lg font-semibold text-gray-900">Makine listesi — Excel önizleme</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Parça listesi — Excel önizleme</h3>
               <button
                 type="button"
                 onClick={closeImportModal}
@@ -247,15 +226,16 @@ export function DeviceList() {
               </button>
             </div>
             <p className="px-4 pt-3 text-sm text-gray-600">
-              İlk satır başlık olmalı. Sütunlar: <strong>Makine Adı</strong> (zorunlu),{' '}
-              <strong>Seri Numarası</strong> (isteğe bağlı; boşsa otomatik atanır).
+              İlk satır başlık olmalı: <strong>Parça Adı</strong> | <strong>Stok Kodu</strong> |{' '}
+              <strong>Notlar</strong>
             </p>
             <div className="overflow-auto p-4">
-              <table className="w-full min-w-[320px] border-collapse text-sm">
+              <table className="w-full min-w-[480px] border-collapse text-sm">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 text-left">
-                    <th className="px-3 py-2 font-semibold text-gray-700">Makine Adı</th>
-                    <th className="px-3 py-2 font-semibold text-gray-700">Seri Numarası</th>
+                    <th className="px-3 py-2 font-semibold text-gray-700">Parça Adı</th>
+                    <th className="px-3 py-2 font-semibold text-gray-700">Stok Kodu</th>
+                    <th className="px-3 py-2 font-semibold text-gray-700">Notlar</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -266,12 +246,9 @@ export function DeviceList() {
                         row.isValid ? 'border-b border-gray-100' : 'border-b border-red-200 bg-red-50'
                       }
                     >
-                      <td className="px-3 py-2">{row.device_type || '—'}</td>
-                      <td className="px-3 py-2">
-                        {row.serial_from_excel || (
-                          <span className="text-gray-400 italic">(otomatik)</span>
-                        )}
-                      </td>
+                      <td className="px-3 py-2">{row.name || '—'}</td>
+                      <td className="px-3 py-2">{row.part_code || '—'}</td>
+                      <td className="px-3 py-2">{row.notes || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -292,7 +269,7 @@ export function DeviceList() {
                 type="button"
                 disabled={importLoading || previewRows.filter((r) => r.isValid).length === 0}
                 onClick={handleConfirmImport}
-                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+                className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
               >
                 {importLoading ? 'Kaydediliyor...' : 'Onayla ve Kaydet'}
               </button>
@@ -301,49 +278,61 @@ export function DeviceList() {
         </div>
       )}
 
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-900">Makine envanteri</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Makine adlarını tek tek veya Excel ile ekleyin. Parça ve stok için{' '}
-          <strong>Parça listesi</strong> menüsünü kullanın.
-        </p>
-      </div>
-
-      <div className="flex items-center justify-end mb-6 flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={openFilePicker}
-          className="flex items-center gap-2 border border-green-600 text-green-700 bg-white px-4 py-2 rounded-lg hover:bg-green-50 transition-colors text-sm font-semibold"
-        >
-          <FileSpreadsheet className="w-4 h-4" />
-          Excel&apos;den içe aktar
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
-        >
-          <Plus className="w-4 h-4" />
-          Makine ekle
-        </button>
+      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Parça listesi</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Stok ve yedek parça kayıtları burada tutulur. Excel ile toplu içe aktarabilirsiniz.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-2 border border-amber-600 text-amber-800 bg-white px-4 py-2 rounded-lg hover:bg-amber-50 transition-colors text-sm font-semibold"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            Excel&apos;den içe aktar
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors text-sm font-semibold"
+          >
+            <Plus className="w-4 h-4" />
+            Parça ekle
+          </button>
+        </div>
       </div>
 
       {showForm && (
-        <form onSubmit={handleAddDevice} className="mb-6 p-4 bg-gray-50 rounded-lg space-y-3">
-          <div>
-            <input
-              type="text"
-              value={machineName}
-              onChange={(e) => setMachineName(e.target.value)}
-              placeholder="Makine / cihaz adı *"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              required
-            />
-          </div>
+        <form onSubmit={handleAdd} className="mb-6 p-4 bg-amber-50/80 rounded-lg space-y-3 border border-amber-100">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Parça adı *"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            required
+          />
+          <input
+            type="text"
+            value={partCode}
+            onChange={(e) => setPartCode(e.target.value)}
+            placeholder="Stok / ürün kodu"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+          />
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Notlar"
+            rows={2}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-y min-h-[72px]"
+          />
           <div className="flex gap-2">
             <button
               type="submit"
-              className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-semibold"
+              className="flex-1 bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors font-semibold"
             >
               Ekle
             </button>
@@ -359,30 +348,34 @@ export function DeviceList() {
       )}
 
       <div className="space-y-3">
-        {devices.map((device) => (
+        {parts.map((part) => (
           <div
-            key={device.id}
-            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            key={part.id}
+            className="flex items-start justify-between gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 shrink-0 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
-                <Wrench className="w-5 h-5" />
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="w-10 h-10 shrink-0 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700">
+                <Package className="w-5 h-5" />
               </div>
-              <div className="font-semibold text-gray-900 truncate">{device.device_type}</div>
+              <div className="min-w-0">
+                <div className="font-semibold text-gray-900">{part.name}</div>
+                {part.part_code ? (
+                  <div className="text-sm text-gray-600">Kod: {part.part_code}</div>
+                ) : null}
+                {part.notes ? <div className="text-sm text-gray-500 mt-1">{part.notes}</div> : null}
+              </div>
             </div>
             <button
               type="button"
-              onClick={() => handleDelete(device.id)}
+              onClick={() => handleDelete(part.id)}
               className="text-red-500 hover:text-red-700 transition-colors p-2 shrink-0"
             >
               <Trash2 className="w-5 h-5" />
             </button>
           </div>
         ))}
-        {devices.length === 0 && (
-          <div className="text-center text-gray-500 py-8">
-            Henüz makine yok. Servis kayıtlarında kullanılacak makine adı ekleyin.
-          </div>
+        {parts.length === 0 && (
+          <div className="text-center text-gray-500 py-8">Henüz parça kaydı yok.</div>
         )}
       </div>
     </div>

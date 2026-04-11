@@ -102,6 +102,29 @@ export interface Database {
           created_at?: string
         }
       }
+      parts: {
+        Row: {
+          id: string
+          name: string
+          part_code: string
+          notes: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          part_code?: string
+          notes?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          part_code?: string
+          notes?: string
+          created_at?: string
+        }
+      }
       tickets: {
         Row: {
           id: string
@@ -236,6 +259,7 @@ export interface Database {
 export type AdminUser = Database['public']['Tables']['admin_users']['Row']
 export type Technician = Database['public']['Tables']['technicians']['Row']
 export type Device = Database['public']['Tables']['devices']['Row']
+export type Part = Database['public']['Tables']['parts']['Row']
 export type Ticket = Database['public']['Tables']['tickets']['Row']
 export type TicketNote = Database['public']['Tables']['ticket_notes']['Row']
 

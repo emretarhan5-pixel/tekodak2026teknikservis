@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Shield, Users, Wrench, Ticket, LogOut, BarChart3, ClipboardList, UserCircle, Trophy, Menu, X } from 'lucide-react';
+import { Users, Wrench, Ticket, LogOut, BarChart3, ClipboardList, UserCircle, Trophy, Menu, X, Package } from 'lucide-react';
 import { TechnicianList } from './TechnicianList';
 import { DeviceList } from './DeviceList';
+import { PartsList } from './PartsList';
 import { AdminTicketList } from './AdminTicketList';
 import { AdminAnalytics } from './AdminAnalytics';
 import { StaffActivityReport } from './StaffActivityReport';
@@ -19,7 +20,15 @@ interface AdminDashboardProps {
   onLogout: () => void;
 }
 
-type AdminView = 'technicians' | 'devices' | 'tickets' | 'analytics' | 'activity' | 'customers' | 'won-tickets';
+type AdminView =
+  | 'technicians'
+  | 'devices'
+  | 'parts'
+  | 'tickets'
+  | 'analytics'
+  | 'activity'
+  | 'customers'
+  | 'won-tickets';
 
 const viewConfig = {
   technicians: {
@@ -31,10 +40,17 @@ const viewConfig = {
   },
   devices: {
     icon: Wrench,
-    title: 'Cihaz Yönetimi',
-    description: 'Müşteri cihazlarını envanterinize kaydedin ve yönetin',
+    title: 'Makine envanteri',
+    description: 'Serviste kullanılacak makine ve cihaz adlarını tanımlayın',
     iconBg: 'bg-green-100',
     iconColor: 'text-green-600',
+  },
+  parts: {
+    icon: Package,
+    title: 'Parça listesi',
+    description: 'Yedek parça ve stok kodlarını ayrı olarak yönetin',
+    iconBg: 'bg-orange-100',
+    iconColor: 'text-orange-700',
   },
   tickets: {
     icon: Ticket,
@@ -176,7 +192,18 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
             }`}
           >
             <Wrench className="w-5 h-5" />
-            Cihazlar
+            Makineler
+          </button>
+          <button
+            onClick={() => handleNavClick('parts')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors text-left ${
+              currentView === 'parts'
+                ? 'bg-amber-500 text-gray-900'
+                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+            }`}
+          >
+            <Package className="w-5 h-5" />
+            Parça listesi
           </button>
           <button
             onClick={() => handleNavClick('customers')}
@@ -236,9 +263,20 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
         </header>
 
         <div className="p-4 sm:p-8">
-          <div className={currentView === 'tickets' || currentView === 'analytics' || currentView === 'activity' || currentView === 'customers' || currentView === 'won-tickets' ? '' : 'max-w-3xl'}>
+          <div
+            className={
+              currentView === 'tickets' ||
+              currentView === 'analytics' ||
+              currentView === 'activity' ||
+              currentView === 'customers' ||
+              currentView === 'won-tickets'
+                ? ''
+                : 'max-w-3xl'
+            }
+          >
             {currentView === 'technicians' && <TechnicianList />}
             {currentView === 'devices' && <DeviceList />}
+            {currentView === 'parts' && <PartsList />}
             {currentView === 'tickets' && <AdminTicketList />}
             {currentView === 'analytics' && <AdminAnalytics />}
             {currentView === 'activity' && <StaffActivityReport />}
