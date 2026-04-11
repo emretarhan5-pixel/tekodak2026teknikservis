@@ -140,7 +140,7 @@ export function TicketModal({ ticket, onClose, onSave, staffName, staffId }: Tic
         title: formData.title,
         description: formData.description || null,
         priority: formData.priority,
-        status: formData.status,
+        status: ticket ? formData.status : 'accepted_pending',
         assigned_to: staffId || formData.assigned_to || null,
         device_id: formData.device_id || null,
         serial_number: formData.serial_number || null,
@@ -272,23 +272,25 @@ export function TicketModal({ ticket, onClose, onSave, staffName, staffId }: Tic
                 </select>
               </div>
 
-              <div>
-                <label className={labelClasses}>Durum *</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => handleChange('status', e.target.value)}
-                  className={inputClasses}
-                  required
-                >
-                  <option value="accepted_pending">Kabul Edildi / Beklemede</option>
-                  <option value="fault_diagnosis">Arıza Tespiti</option>
-                  <option value="customer_approval">Müşteri Onayı</option>
-                  <option value="under_repair">Onarımda</option>
-                  <option value="ready_for_delivery">Teslimata Hazır</option>
-                  <option value="invoicing">Faturalama</option>
-                  <option value="delivery">Teslimat</option>
-                </select>
-              </div>
+              {ticket && (
+                <div>
+                  <label className={labelClasses}>Durum *</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => handleChange('status', e.target.value)}
+                    className={inputClasses}
+                    required
+                  >
+                    <option value="accepted_pending">Kabul Edildi / Beklemede</option>
+                    <option value="fault_diagnosis">Arıza Tespiti</option>
+                    <option value="customer_approval">Müşteri Onayı</option>
+                    <option value="under_repair">Onarımda</option>
+                    <option value="ready_for_delivery">Teslimata Hazır</option>
+                    <option value="invoicing">Faturalama</option>
+                    <option value="delivery">Teslimat</option>
+                  </select>
+                </div>
+              )}
 
             </div>
 
